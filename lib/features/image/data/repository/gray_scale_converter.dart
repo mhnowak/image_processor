@@ -4,13 +4,16 @@ import 'package:image_processor/features/image/domain/models/image_model.dart';
 
 class GreyScaleConverter {
   ImageModel call(ImageModel model) {
-    assert(model.format != ImageFormat.pgm);
+    assert(
+      model.format != ImageFormat.pgm,
+      "Already PGM format, can't convert PGM to PGM",
+    );
 
     switch (model.format) {
       case ImageFormat.pbm:
         return _pbmToPgm(model);
       case ImageFormat.pgm:
-        throw FormatException("Already PGM format, can't conver PGM to PGM");
+        throw FormatException("Already PGM format, can't convert PGM to PGM");
       case ImageFormat.ppm:
         return _ppmToPgm(model);
     }

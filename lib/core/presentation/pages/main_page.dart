@@ -24,7 +24,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return PlatformMenuBar(
-      menus: _buildMenus(),
+      menus: _buildMenus(context),
       child: IPScaffold(
         body: Builder(
           builder: (context) {
@@ -55,7 +55,7 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  List<PlatformMenuItem> _buildMenus() {
+  List<PlatformMenuItem> _buildMenus(BuildContext context) {
     return [
       PlatformMenu(
         label: 'Image Processor',
@@ -77,6 +77,7 @@ class _MainPageState extends State<MainPage> {
         },
       ),
       imageMenu(
+        context: context,
         model: _imageModel,
         onModelUpdate: (model) {
           setState(() {
