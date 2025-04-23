@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
-class LutModel {
+class CorrectionArgsModel {
   final double brightness;
   final double contrast;
   final double gamma;
 
-  const LutModel({
+  const CorrectionArgsModel({
     required this.brightness,
     required this.contrast,
     required this.gamma,
