@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:image_processor/features/image/domain/models/image_format.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 
-class GreyScaleConverter {
+class GrayScaleTransformation {
   ImageModel call(ImageModel model) {
     assert(
       model.format != ImageFormat.pgm,
