@@ -1,16 +1,10 @@
+import 'dart:io';
 import 'dart:typed_data';
 
-/// Enum representing the different types of portable image formats
-enum ImageFormat {
-  /// Portable Bitmap (black and white)
-  pbm,
-
-  /// Portable Graymap (grayscale)
-  pgm,
-
-  /// Portable Pixmap (color)
-  ppm,
-}
+import 'package:image_processor/features/image/domain/models/image_format.dart';
+import 'package:image_processor/features/image/domain/utils/image_file_utils.dart';
+import 'package:image_processor/features/image/domain/utils/image_list_string_utils.dart';
+import 'package:image_processor/features/image/domain/utils/read_pixel_data.dart';
 
 /// Represents a portable image format (PBM, PGM, or PPM)
 class ImageModel {
@@ -38,46 +32,39 @@ class ImageModel {
     required this.pixels,
   });
 
-  /// Creates a PBM (Portable Bitmap) image
-  factory ImageModel.pbm({
-    required int width,
-    required int height,
-    required Uint8List pixels,
-  }) {
-    return ImageModel(
-      format: ImageFormat.pbm,
-      width: width,
-      height: height,
-      maxValue: 1,
-      pixels: pixels,
-    );
-  }
+  factory ImageModel.fromFile(File file) {
+    final format = file.imageFormat;
 
-  /// Creates a PGM (Portable Graymap) image
-  factory ImageModel.pgm({
-    required int width,
-    required int height,
-    required int maxValue,
-    required Uint8List pixels,
-  }) {
-    return ImageModel(
-      format: ImageFormat.pgm,
-      width: width,
-      height: height,
-      maxValue: maxValue,
-      pixels: pixels,
-    );
-  }
+    final contents = file.readAsStringSync();
+    final lines = contents.split('\n');
 
-  /// Creates a PPM (Portable Pixmap) image
-  factory ImageModel.ppm({
-    required int width,
-    required int height,
-    required int maxValue,
-    required Uint8List pixels,
-  }) {
+    // Read magic number and validate
+    final magicNumber = lines.readNextNonCommentLine();
+    if (!format.isValid(magicNumber)) {
+      throw FormatException('Invalid magic number for $format format');
+    }
+
+    // Read dimensions
+    final dimensions = lines.readNextNonCommentLine();
+    final parts = dimensions.split(RegExp(r'\s+'));
+    if (parts.length != 2) {
+      throw FormatException('Invalid dimensions format');
+    }
+
+    final width = int.parse(parts[0]);
+    final height = int.parse(parts[1]);
+
+    // Read max value (except for PBM)
+    int maxValue = 1;
+    if (format != ImageFormat.pbm) {
+      final maxValueLine = lines.readNextNonCommentLine();
+      maxValue = int.parse(maxValueLine);
+    }
+
+    final pixels = readPixelData(lines, format, width, height);
+
     return ImageModel(
-      format: ImageFormat.ppm,
+      format: format,
       width: width,
       height: height,
       maxValue: maxValue,
@@ -107,7 +94,7 @@ class ImageModel {
     // Create header string with format, dimensions, and max value
     final header =
         StringBuffer()
-          ..write('P${_getFormatNumber()}\n')
+          ..write('P${format.formatNumber}\n')
           ..write('$width $height\n')
           // Only include maxValue for PGM and PPM formats
           ..write(format != ImageFormat.pbm ? '$maxValue\n' : '');
@@ -121,16 +108,5 @@ class ImageModel {
     result.setAll(headerBytes.length, pixels);
 
     return result;
-  }
-
-  int _getFormatNumber() {
-    switch (format) {
-      case ImageFormat.pbm:
-        return 4; // P4 for binary PBM
-      case ImageFormat.pgm:
-        return 5; // P5 for binary PGM
-      case ImageFormat.ppm:
-        return 6; // P6 for binary PPM
-    }
   }
 }
