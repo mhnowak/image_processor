@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_processor/core/presentation/widgets/ip_progress_indicator.dart';
+import 'package:image_processor/features/convolution/presentation/menus/convolution_menus.dart';
 import 'package:image_processor/features/correction/presentation/menus/correction_menu_item.dart';
 import 'package:image_processor/features/files/presentation/menus/file_menu.dart';
 import 'package:image_processor/features/files/presentation/utils/save_file.dart';
@@ -85,6 +86,7 @@ class _MainPageState extends State<MainPage> {
           grayScaleMenuItem(_imageModel, _onImageUpdate),
           correctionMenuItem(context, _imageModel, _onImageUpdate),
           histogramTransformationsGroup(context, _imageModel, _onImageUpdate),
+          ...convolutionMenuItems(context, _imageModel, _onImageUpdate),
         ],
       ),
       PlatformMenu(

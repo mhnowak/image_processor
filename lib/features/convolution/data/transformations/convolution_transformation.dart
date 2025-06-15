@@ -1,12 +1,11 @@
 import 'dart:typed_data';
-import 'dart:math' as math;
 
 import 'package:image_processor/features/image/domain/models/image_format.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 
 enum EdgeMode { cyclic, nullEdge, repeat }
 
-class ConvolutionTransformation {
+abstract class ConvolutionTransformation {
   static const List<List<double>> identity = [
     [0, 0, 0],
     [0, 1, 0],
@@ -14,9 +13,9 @@ class ConvolutionTransformation {
   ];
 
   static const List<List<double>> blur = [
-    [1/9, 1/9, 1/9],
-    [1/9, 1/9, 1/9],
-    [1/9, 1/9, 1/9],
+    [1 / 9, 1 / 9, 1 / 9],
+    [1 / 9, 1 / 9, 1 / 9],
+    [1 / 9, 1 / 9, 1 / 9],
   ];
 
   static const List<List<double>> sharpen = [
@@ -33,33 +32,33 @@ class ConvolutionTransformation {
 
   ImageModel call(
     ImageModel image,
-    EdgeMode edgeMode,
-    List<List<double>> mask,
-  ) {
+    EdgeMode edgeMode, {
+    List<List<double>>? mask,
+  }) {
     assert(
       image.format == ImageFormat.ppm || image.format == ImageFormat.pgm,
       'Only PPM and PGM formats are supported',
     );
+
+    mask ??= getMask(3);
+
     assert(
-      mask.length % 2 == 1 && mask.length > 0,
+      mask.length % 2 == 1 && mask.isNotEmpty,
       'Mask size must be a positive odd number',
     );
-    assert(
-      mask.length == mask[0].length,
-      'Mask must be a square matrix',
-    );
+    assert(mask.length == mask[0].length, 'Mask must be a square matrix');
 
     final maskSize = mask.length;
     final weight = sum(mask);
     final channels = image.format == ImageFormat.ppm ? 3 : 1;
     final pixels = Uint8List(image.pixels.length);
 
-    for (var channel = 0; channel < channels; channel++) {
-      for (var y = 0; y < image.height; y++) {
-        for (var x = 0; x < image.width; x++) {
+    for (int channel = 0; channel < channels; channel++) {
+      for (int y = 0; y < image.height; y++) {
+        for (int x = 0; x < image.width; x++) {
           final window = getWindow(image, x, y, maskSize, channel, edgeMode);
           final accumulator = join(window, mask);
-          var sum = this.sum(accumulator);
+          double sum = this.sum(accumulator);
 
           if (weight != 0) {
             sum = sum / weight;
@@ -91,7 +90,6 @@ class ConvolutionTransformation {
     final width = image.width;
     final height = image.height;
 
-    // Handle cyclic wrapping for x and y coordinates
     final wrappedX = ((x % width) + width) % width;
     final wrappedY = ((y % height) + height) % height;
 
@@ -142,8 +140,8 @@ class ConvolutionTransformation {
     final halfSize = size ~/ 2;
     final window = List.generate(size, (i) => List.generate(size, (j) => 0));
 
-    for (var i = 0; i < size; i++) {
-      for (var j = 0; j < size; j++) {
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
         final pixelX = x + (j - halfSize);
         final pixelY = y + (i - halfSize);
 
@@ -162,9 +160,8 @@ class ConvolutionTransformation {
   }
 
   List<List<double>> getMask(int size) {
-    final mask = List.generate(size, (i) => List.generate(size, (j) => 0.0));
-    final center = size ~/ 2;
-    mask[center][center] = 1.0;
+    final value = 1.0 / (size * size);
+    final mask = List.generate(size, (i) => List.generate(size, (j) => value));
     return mask;
   }
 
@@ -172,8 +169,8 @@ class ConvolutionTransformation {
     final size = window.length;
     final result = List.generate(size, (i) => List.generate(size, (j) => 0.0));
 
-    for (var i = 0; i < size; i++) {
-      for (var j = 0; j < size; j++) {
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
         result[i][j] = window[i][j] * mask[i][j];
       }
     }
@@ -187,18 +184,5 @@ class ConvolutionTransformation {
       (sum, row) =>
           sum + row.fold<double>(0, (rowSum, value) => rowSum + value),
     );
-  }
-
-  List<List<double>> reflection(List<List<double>> matrix) {
-    final size = matrix.length;
-    final result = List.generate(size, (i) => List.generate(size, (j) => 0.0));
-
-    for (var i = 0; i < size; i++) {
-      for (var j = 0; j < size; j++) {
-        result[i][j] = matrix[size - 1 - i][size - 1 - j];
-      }
-    }
-
-    return result;
   }
 }
