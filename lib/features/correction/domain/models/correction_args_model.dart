@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
 class CorrectionArgsModel {
-  final double brightness;
-  final double contrast;
-  final double gamma;
+  final double brightness; // -1 - 1 TODO: 0 255
+  final double contrast; // -1 - 1
+  final double gamma; // 0 - 5
 
   const CorrectionArgsModel({
     required this.brightness,
