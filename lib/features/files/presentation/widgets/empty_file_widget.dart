@@ -36,10 +36,10 @@ class EmptyFileWidget extends StatelessWidget {
   }
 
   void _showMultipleFilesError() {
-    print('Multiple files dropped');
+    debugPrint('Multiple files dropped');
   }
 
   void _showInvalidFileError() {
-    print('Invalid file dropped');
+    debugPrint('Invalid file dropped');
   }
 }

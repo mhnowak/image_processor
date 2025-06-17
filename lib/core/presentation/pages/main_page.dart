@@ -13,6 +13,7 @@ import 'package:image_processor/features/histogram/presentation/menus/histogram_
 import 'package:image_processor/features/histogram/presentation/menus/show_histogram_menu_item.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 import 'package:image_processor/features/image/presentation/widgets/image_widget.dart';
+import 'package:image_processor/features/segmentation/presentation/menus/segmentation_menu_item.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -67,7 +68,7 @@ class _MainPageState extends State<MainPage> {
           PlatformMenuItem(
             label: 'About Image Processor',
             onSelected: () {
-              print("TODO About Image Processor");
+              debugPrint("TODO About Image Processor");
             },
           ),
         ],
@@ -87,6 +88,7 @@ class _MainPageState extends State<MainPage> {
           correctionMenuItem(context, _imageModel, _onImageUpdate),
           histogramTransformationsGroup(context, _imageModel, _onImageUpdate),
           ...convolutionMenuItems(context, _imageModel, _onImageUpdate),
+          segmentationMenuItem(_imageModel, _onImageUpdate),
         ],
       ),
       PlatformMenu(
