@@ -10,6 +10,7 @@ import 'package:image_processor/features/files/presentation/utils/save_file.dart
 import 'package:image_processor/features/files/presentation/widgets/empty_file_widget.dart';
 import 'package:image_processor/core/presentation/widgets/ip_scaffold.dart';
 import 'package:image_processor/features/grayscale/presentation/menus/gray_scale_menu_item.dart';
+import 'package:image_processor/features/harris/presentation/menus/harris_group.dart';
 import 'package:image_processor/features/histogram/presentation/menus/histogram_transformations_menu_item_group.dart';
 import 'package:image_processor/features/histogram/presentation/menus/show_histogram_menu_item.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
@@ -106,6 +107,7 @@ class _MainPageState extends State<MainPage> {
           histogramTransformationsGroup(context, _imageModel, _onImageUpdate),
           convolutionGroup(context, _imageModel, _onImageUpdate),
           edgesGroup(context, _imageModel, _onImageUpdate),
+          harrisGroup(context, _imageModel, _onImageUpdate),
           segmentationMenuItem(_imageModel, _onImageUpdate),
         ],
       ),

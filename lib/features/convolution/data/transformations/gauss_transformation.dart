@@ -1,6 +1,5 @@
-import 'dart:math';
-
 import 'package:image_processor/features/convolution/data/transformations/convolution_transformation.dart';
+import 'package:image_processor/features/convolution/data/transformations/gauss_fnc.dart';
 
 const double defaultSigma = 1.6;
 
@@ -22,16 +21,10 @@ class GaussTransformation extends ConvolutionTransformation {
       for (int j = 0; j < size; j++) {
         final x = j - center;
         final y = i - center;
-        mask[i][j] = _getGauss(x, y, sigma);
+        mask[i][j] = getGauss(x, y, sigma);
       }
     }
 
     return mask;
-  }
-
-  double _getGauss(int x, int y, double sigma) {
-    final coefficient = 1.0 / (2 * pi * sigma * sigma);
-    final exponent = -((x * x + y * y) / (2 * sigma * sigma));
-    return coefficient * exp(exponent);
   }
 }
