@@ -18,15 +18,15 @@ Uint8List readPixelData(
   }
 }
 
-/// Reads PBM (binary) data
+
 Uint8List _readPbmData(List<String> lines, int width, int height) {
   final data = lines.join().trim();
   final pixels = <int>[];
 
-  // Handle both space-separated and continuous string formats
+  
   for (final char in data.split(RegExp(r'\s+'))) {
     if (char.isEmpty) continue;
-    // For continuous string format, process each character
+    
     for (final bit in char.split('')) {
       if (bit == '1' || bit == '0') {
         pixels.add(int.parse(bit));
@@ -41,7 +41,7 @@ Uint8List _readPbmData(List<String> lines, int width, int height) {
   return Uint8List.fromList(pixels);
 }
 
-/// Reads PGM (grayscale) data
+
 Uint8List _readPgmData(List<String> lines, int width, int height) {
   final data = lines.join(' ').trim();
   final pixels = <int>[];
@@ -59,7 +59,7 @@ Uint8List _readPgmData(List<String> lines, int width, int height) {
   return Uint8List.fromList(pixels);
 }
 
-/// Reads PPM (color) data
+
 Uint8List _readPpmData(List<String> lines, int width, int height) {
   final data = lines.join(' ').trim();
   final pixels = <int>[];

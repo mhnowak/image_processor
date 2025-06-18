@@ -1,11 +1,6 @@
 enum ImageFormat {
-  /// Portable Bitmap (black and white)
   pbm,
-
-  /// Portable Graymap (grayscale)
   pgm,
-
-  /// Portable Pixmap (color)
   ppm;
 
   int get formatNumber {

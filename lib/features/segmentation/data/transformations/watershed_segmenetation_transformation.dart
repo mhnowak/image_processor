@@ -5,10 +5,10 @@ import 'package:image_processor/features/image/domain/models/image_format.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 import 'package:image_processor/features/grayscale/data/transformations/gray_scale_transformation.dart';
 
-const int _init = -1; // initial value of lab image
-const int _mask = -2; // initial value at each level
-const int _wshed = 0; // label of the watershed pixels
-const int _fictitiousX = -1, _fictitiousY = -1; // fictitious pixel coordinates
+const int _init = -1; 
+const int _mask = -2; 
+const int _wshed = 0; 
+const int _fictitiousX = -1, _fictitiousY = -1; 
 
 class WatershedSegmentationTransformation {
   ImageModel call(ImageModel model) {
@@ -47,11 +47,11 @@ class WatershedSegmentationTransformation {
   List<int> _watershedByImmersion(Uint8List image, int width, int height) {
     final int size = width * height;
 
-    // Initialize arrays
-    final lab = List.filled(size, _init); // label image
-    final dist = List.filled(size, 0); // distance image
+    
+    final lab = List.filled(size, _init); 
+    final dist = List.filled(size, 0); 
 
-    // Find min and max grey values
+    
     int hmin = 255;
     int hmax = 0;
     for (int i = 0; i < size; i++) {
@@ -59,7 +59,7 @@ class WatershedSegmentationTransformation {
       if (image[i] > hmax) hmax = image[i];
     }
 
-    // Sort pixels by grey value for direct access
+    
     final sortedPixels = <int, List<int>>{};
     for (int level = hmin; level <= hmax; level++) {
       sortedPixels[level] = <int>[];
@@ -69,23 +69,23 @@ class WatershedSegmentationTransformation {
       sortedPixels[image[i]]!.add(i);
     }
 
-    // Initialize FIFO queue
+    
     final queue = Queue<int>();
-    int curlab = 0; // current label
+    int curlab = 0; 
 
-    // Start flooding
+    
     for (int h = hmin; h <= hmax; h++) {
       final pixelsAtLevel = sortedPixels[h]!;
 
-      // Mask all pixels at level h
+      
       for (final p in pixelsAtLevel) {
         lab[p] = _mask;
 
-        // Check if p has a neighbour with (lab[q] > 0 or lab[q] = wshed)
+        
         final neighbors = _getNeighbors(p, width, height);
         for (final q in neighbors) {
           if (lab[q] > 0 || lab[q] == _wshed) {
-            // Initialize queue with neighbours at level h of current basins or watersheds
+            
             dist[p] = 1;
             queue.add(p);
             break;
@@ -96,9 +96,9 @@ class WatershedSegmentationTransformation {
       int curdist = 1;
       queue.add(
         _encodePixel(_fictitiousX, _fictitiousY, width),
-      ); // add fictitious pixel
+      ); 
 
-      // Extend basins
+      
       while (queue.isNotEmpty) {
         int p = queue.removeFirst();
 
@@ -108,17 +108,17 @@ class WatershedSegmentationTransformation {
           } else {
             queue.add(
               _encodePixel(_fictitiousX, _fictitiousY, width),
-            ); // add fictitious pixel
+            ); 
             curdist++;
             p = queue.removeFirst();
           }
         }
 
-        // Label p by inspecting neighbours
+        
         final neighbors = _getNeighbors(p, width, height);
         for (final q in neighbors) {
           if (dist[q] < curdist && (lab[q] > 0 || lab[q] == _wshed)) {
-            // q belongs to an existing basin or to watersheds
+            
             if (lab[q] > 0) {
               if (lab[p] == _mask || lab[p] == _wshed) {
                 lab[p] = lab[q];
@@ -129,20 +129,20 @@ class WatershedSegmentationTransformation {
               lab[p] = _wshed;
             }
           } else if (lab[q] == _mask && dist[q] == 0) {
-            // q is plateau pixel
+            
             dist[q] = curdist + 1;
             queue.add(q);
           }
         }
       }
 
-      // Detect and process new minima at level h
+      
       for (final p in pixelsAtLevel) {
-        dist[p] = 0; // reset distance to zero
+        dist[p] = 0; 
 
         if (lab[p] == _mask) {
-          // p is inside a new minimum
-          curlab++; // create new label
+          
+          curlab++; 
           queue.add(p);
           lab[p] = curlab;
 
@@ -218,14 +218,14 @@ class WatershedSegmentationTransformation {
       final label = labels[i];
 
       if (label == _wshed) {
-        // Border
+        
         colors.addAll([255, 255, 255]);
       } else if (label > 0) {
-        // Segment
+        
         final grayValue = labelGrays[label]!;
         colors.addAll([grayValue, grayValue, grayValue]);
       } else {
-        // Unprocessed
+        
         colors.addAll([0, 0, 0]);
       }
     }

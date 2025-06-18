@@ -5,21 +5,23 @@ import 'package:image_processor/features/convolution/data/transformations/convol
 import 'package:image_processor/features/image/domain/models/image_format.dart';
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 
-List<PlatformMenuItem> convolutionMenuItems(
+PlatformMenuItemGroup convolutionGroup(
   BuildContext context,
   ImageModel? model,
   void Function(ImageModel model) onModelUpdate,
 ) {
-  return [
-    PlatformMenuItem(
-      label: 'Blur Uniform',
-      onSelected: _onBlurUniform(context, model, onModelUpdate),
-    ),
-    PlatformMenuItem(
-      label: 'Blur Gaussian',
-      onSelected: _onBlurGaussian(context, model, onModelUpdate),
-    ),
-  ];
+  return PlatformMenuItemGroup(
+    members: [
+      PlatformMenuItem(
+        label: 'Blur Uniform',
+        onSelected: _onBlurUniform(context, model, onModelUpdate),
+      ),
+      PlatformMenuItem(
+        label: 'Blur Gaussian',
+        onSelected: _onBlurGaussian(context, model, onModelUpdate),
+      ),
+    ],
+  );
 }
 
 VoidCallback? _onBlurUniform(

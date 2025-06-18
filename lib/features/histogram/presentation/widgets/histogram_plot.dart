@@ -82,7 +82,6 @@ class _HistogramPainter extends CustomPainter {
     final barWidth = width / 256;
 
     if (showGrayscale) {
-      // Draw grayscale histogram
       final grayscalePaint =
           Paint()
             ..color = grayscaleColor
@@ -97,7 +96,6 @@ class _HistogramPainter extends CustomPainter {
       }
     }
 
-    // Draw RGB channels with transparency
     final redPaint =
         Paint()
           ..color = redColor.withAlpha(128)
@@ -119,21 +117,18 @@ class _HistogramPainter extends CustomPainter {
     for (int i = 0; i < 256; i++) {
       final x = i * barWidth;
 
-      // Red channel
       if (showRed) {
         final redHeight = (histogram.red[i] / maxValue) * height;
         final redY = height - redHeight;
         canvas.drawLine(Offset(x, height), Offset(x, redY), redPaint);
       }
 
-      // Green channel
       if (showGreen) {
         final greenHeight = (histogram.green[i] / maxValue) * height;
         final greenY = height - greenHeight;
         canvas.drawLine(Offset(x, height), Offset(x, greenY), greenPaint);
       }
 
-      // Blue channel
       if (showBlue) {
         final blueHeight = (histogram.blue[i] / maxValue) * height;
         final blueY = height - blueHeight;

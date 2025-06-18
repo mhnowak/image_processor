@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_processor/core/presentation/widgets/ip_progress_indicator.dart';
 import 'package:image_processor/features/convolution/presentation/menus/convolution_menus.dart';
 import 'package:image_processor/features/correction/presentation/menus/correction_menu_item.dart';
+import 'package:image_processor/features/edges/presentation/menus/edges_menus.dart';
 import 'package:image_processor/features/files/presentation/menus/file_menu.dart';
 import 'package:image_processor/features/files/presentation/utils/save_file.dart';
 import 'package:image_processor/features/files/presentation/widgets/empty_file_widget.dart';
@@ -14,6 +15,7 @@ import 'package:image_processor/features/histogram/presentation/menus/show_histo
 import 'package:image_processor/features/image/domain/models/image_model.dart';
 import 'package:image_processor/features/image/presentation/widgets/image_widget.dart';
 import 'package:image_processor/features/segmentation/presentation/menus/segmentation_menu_item.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -31,6 +33,15 @@ class _MainPageState extends State<MainPage> {
     return PlatformMenuBar(
       menus: _buildMenus(context),
       child: IPScaffold(
+        actions: [
+          if (_imageModel != null)
+            ToolBarIconButton(
+              label: 'Delete Image',
+              icon: Icon(Icons.cancel),
+              showLabel: false,
+              onPressed: _deleteImage,
+            ),
+        ],
         body: Builder(
           builder: (context) {
             if (_isLoading) {
@@ -57,6 +68,12 @@ class _MainPageState extends State<MainPage> {
 
     setState(() {
       _isLoading = false;
+    });
+  }
+
+  void _deleteImage() {
+    setState(() {
+      _imageModel = null;
     });
   }
 
@@ -87,7 +104,8 @@ class _MainPageState extends State<MainPage> {
           grayScaleMenuItem(_imageModel, _onImageUpdate),
           correctionMenuItem(context, _imageModel, _onImageUpdate),
           histogramTransformationsGroup(context, _imageModel, _onImageUpdate),
-          ...convolutionMenuItems(context, _imageModel, _onImageUpdate),
+          convolutionGroup(context, _imageModel, _onImageUpdate),
+          edgesGroup(context, _imageModel, _onImageUpdate),
           segmentationMenuItem(_imageModel, _onImageUpdate),
         ],
       ),
