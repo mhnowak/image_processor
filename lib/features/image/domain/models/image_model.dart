@@ -2,22 +2,22 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:image_processor/features/image/domain/models/image_format.dart';
+import 'package:image_processor/features/image/domain/models/image_type.dart';
 import 'package:image_processor/features/image/domain/utils/image_file_utils.dart';
-import 'package:image_processor/features/image/domain/utils/image_list_string_utils.dart';
 import 'package:image_processor/features/image/domain/utils/read_pixel_data.dart';
 
 class ImageModel {
-    final ImageFormat format;
+  final ImageFormat format;
 
-    final int width;
+  final int width;
 
-    final int height;
+  final int height;
 
-    final int maxValue;
+  final int maxValue;
 
-    final Uint8List pixels;
+  final Uint8List pixels;
 
-    const ImageModel({
+  const ImageModel({
     required this.format,
     required this.width,
     required this.height,
@@ -28,30 +28,77 @@ class ImageModel {
   factory ImageModel.fromFile(File file) {
     final format = file.imageFormat;
 
-    final contents = file.readAsStringSync();
-    final lines = contents.split('\n');
+    final bytes = file.readAsBytesSync();
 
-        final magicNumber = lines.readNextNonCommentLine();
-    if (!format.isValid(magicNumber)) {
-      throw FormatException('Invalid magic number for $format format');
+    String? magicNumber;
+    int? width;
+    int? height;
+    int? maxValue;
+
+    StringBuffer currentLine = StringBuffer();
+    int i = 0;
+    while (magicNumber == null ||
+        width == null ||
+        height == null ||
+        maxValue == null) {
+      if (bytes[i] == 10) {
+        final line = currentLine.toString().trim();
+        if (line.startsWith('#')) {
+          // Skip comment
+        } else if (line.startsWith('P')) {
+          magicNumber = line;
+          maxValue = getMaxValueFromMagicNumber(magicNumber);
+        } else if (width == null && height == null) {
+          final parts = line.split(RegExp(r'\s+'));
+
+          if (parts.length != 2) {
+            throw FormatException('Invalid dimensions format');
+          }
+
+          width = int.parse(parts[0]);
+          height = int.parse(parts[1]);
+        } else {
+          maxValue ??= int.parse(line);
+        }
+
+        currentLine.clear();
+      }
+
+      final char = String.fromCharCode(bytes[i]);
+      currentLine.write(char);
+      i++;
     }
 
-        final dimensions = lines.readNextNonCommentLine();
-    final parts = dimensions.split(RegExp(r'\s+'));
-    if (parts.length != 2) {
-      throw FormatException('Invalid dimensions format');
+    currentLine.clear();
+    List<String> lines = [];
+    while (i < bytes.length) {
+      final char = String.fromCharCode(bytes[i]);
+      currentLine.write(char);
+      if (char == '\n') {
+        lines.add(currentLine.toString().trim());
+        currentLine.clear();
+      }
+      i++;
     }
 
-    final width = int.parse(parts[0]);
-    final height = int.parse(parts[1]);
+    final type = ImageType.fromString(magicNumber);
 
-        int maxValue = 1;
-    if (format != ImageFormat.pbm) {
-      final maxValueLine = lines.readNextNonCommentLine();
-      maxValue = int.parse(maxValueLine);
+    late Uint8List pixels;
+    if (type == ImageType.ascii) {
+      pixels = readPixelDataFromString(
+        lines: lines,
+        format: format,
+        width: width,
+        height: height,
+      );
+    } else {
+      pixels = readPixelDataFromBytes(
+        bytes: bytes,
+        format: format,
+        width: width,
+        height: height,
+      );
     }
-
-    final pixels = readPixelData(lines, format, width, height);
 
     return ImageModel(
       format: format,
@@ -62,7 +109,7 @@ class ImageModel {
     );
   }
 
-    int get bytesPerPixel {
+  int get bytesPerPixel {
     switch (format) {
       case ImageFormat.pbm:
         return 1;
@@ -73,23 +120,30 @@ class ImageModel {
     }
   }
 
-    int get totalPixels => width * height;
+  int get totalPixels => width * height;
 
-    int get totalBytes => totalPixels * bytesPerPixel;
+  int get totalBytes => totalPixels * bytesPerPixel;
 
   Uint8List toBytes() {
-        final header =
+    final header =
         StringBuffer()
           ..write('P${format.formatNumber}\n')
           ..write('$width $height\n')
-                    ..write(format != ImageFormat.pbm ? '$maxValue\n' : '');
+          ..write(format != ImageFormat.pbm ? '$maxValue\n' : '');
 
-        final headerBytes = Uint8List.fromList(header.toString().codeUnits);
+    final headerBytes = Uint8List.fromList(header.toString().codeUnits);
 
-        final result = Uint8List(headerBytes.length + pixels.length);
+    final result = Uint8List(headerBytes.length + pixels.length);
     result.setAll(0, headerBytes);
     result.setAll(headerBytes.length, pixels);
 
     return result;
   }
+}
+
+int? getMaxValueFromMagicNumber(String magicNumber) {
+  if (magicNumber == 'P1' || magicNumber == 'P4') {
+    return 1;
+  }
+  return null;
 }

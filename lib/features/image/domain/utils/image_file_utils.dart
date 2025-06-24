@@ -17,4 +17,5 @@ extension ImageFileUtils on File {
         throw FormatException('Unsupported file format: $extension');
     }
   }
+
 }
